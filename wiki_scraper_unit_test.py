@@ -1,66 +1,51 @@
 import argparse
-
 import pytest
 from bs4 import BeautifulSoup
-
 from wiki_scraper import Controller, Scraper, SingleArticleProcessing
 
+# === FIXTURES ===
 
-# Obiekt BeautifulSoup, który jest przykładową stroną html
 @pytest.fixture
 def example_soup():
-    """Zwraca gotowy obiekt BeautifulSoup, a nie string."""
+    """Symulacja pustej strony do testów"""
     html = """
     <div id="content" class="mw-body">
         <div class="noarticletext mw-content-ltr" dir="ltr" lang="pl">
-            <p>
-                Nic tutaj nie ma. To pusta strona testowa
-            </p>
+            <p>Nic tutaj nie ma. To pusta strona testowa</p>
         </div>
     </div>
     """
     return BeautifulSoup(html, 'html.parser')
 
-
 @pytest.fixture
 def example_link():
+    """Zwraca poprawny link do testów"""
     return 'bulbapedia.bulbagarden.net/wiki/X_Attack_(Next_Quest_8)'
 
-
-# Tworzymy obiekt, który jest potrzebny do zainicjowania Controller-a
 @pytest.fixture
 def mock_arguments():
+    """Mockowane argumenty z konsoli"""
     return argparse.Namespace(local=False)
 
-
-# Bierzemy zapisaną wcześniej stronę z Bulbapedii "Team Rocket" i wczytujemy ją
 @pytest.fixture
 def example_article():
+    """Wczytuje prawdziwy plik HTML z dysku"""
     with open('Team_Rocket.html', 'r', encoding='utf-8') as f:
         site = f.read()
     return site
 
 
-### === TESTY === ###
-
+# === TESTY ===
 
 def test_check_if_exist(example_soup):
-    """
-    Poniższy test powinien zwrócić False, ponieważ w przykładowym obiekcie
-    BeautifulSoup występuje: <div class="noarticletext mw-content-ltr">.
-    """
-    # Do SingleArticleProcessing możemy wrzucić None, bo i tak z tego nie korzystamy.
-    # Processor to obiekt posiadający funkcję check_if_exist.
-    processor = SingleArticleProcessing(None)  # noqa: F841 (zmienna nieużywana, ale zostawiam dla kontekstu)
+    """Sprawdza, czy scraper poprawnie wykrywa nieistniejącą stronę"""
+    processor = SingleArticleProcessing(None)
     scraper = Scraper('https://testujemy', 'testy')
-    
-    # PEP 8: Porównania do False robimy przez 'assert not'
     assert not scraper.check_if_exist(example_soup)
 
 
 def test_raw_text_to_list():
-    # Do SingleArticleProcessing możemy wrzucić None, bo i tak z tego nie korzystamy.
-    # Processor to obiekt posiadający funkcję raw_text_to_list.
+    """Testuje czyszczenie tekstu i zamianę na listę słów"""
     processor = SingleArticleProcessing(None)
     text = 'Nic tu nie ma. Pusta strona testowa'
     
@@ -71,11 +56,12 @@ def test_raw_text_to_list():
 
 
 def test_is_link_right(example_link):
+    """Weryfikuje, czy podany link jest poprawny"""
     controller = Controller(None)
-    # PEP 8: Porównania do True robimy bezpośrednio
     assert controller.is_link_right(example_link)
 
 
 def test_delete_unimportant_parts(example_link):
+    """Sprawdza wycinanie samego tytułu artykułu z adresu URL"""
     controller = Controller(None)
     assert controller.delete_unimportant_parts(example_link) == 'X_Attack_(Next_Quest_8)'
