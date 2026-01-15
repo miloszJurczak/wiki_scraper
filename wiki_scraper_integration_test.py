@@ -41,9 +41,9 @@ def test_table_function():
     )
 
     # Ręczne przekierowanie wyniku działania programu
-    original_stdout = sys.stdout  # Obecne wyjście
-    capture = StringIO()          # Bufor w pamięci
-    sys.stdout = capture          # Podmieniamy wyjście na nasz bufor
+    original_stdout = sys.stdout
+    capture = StringIO()
+    sys.stdout = capture
 
     controller = Controller(args)
     controller.run()
